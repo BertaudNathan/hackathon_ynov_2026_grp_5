@@ -47,7 +47,7 @@ scripts.
 - Script local : [`scripts/finetune_medical_local.py`](scripts/finetune_medical_local.py)
 - Adaptateurs produits : `medical_project/phi35_medical_lora_colab/`,
   `medical_project/phi35_medical_lora/`
-- **Lien Colab de la session d'entraînement** : _à compléter_
+- **Lien Colab de la session d'entraînement** : 'https://colab.research.google.com/drive/1ydPQtc-JMN0i3e0ccT3i57AKHoIqLEou#scrollTo=xQecsrwW9VDl'
 
 ⚠️ Modèle médical **expérimental** — ne remplace jamais un avis médical professionnel (voir
 `medical_project/Readme.md`).
