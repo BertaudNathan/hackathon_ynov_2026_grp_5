@@ -457,6 +457,40 @@ let history     = [];   // [{role, content}, ...]
 let streaming   = false;
 let healthTimer = null;
 
+const STORAGE_KEY = "techcorp_chat_history";
+const MODEL_KEY   = "techcorp_chat_model";
+
+// ── Persistence ───────────────────────────────────────────────────────────────
+function saveHistory() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); } catch { /* quota / private mode */ }
+}
+
+function restoreHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!Array.isArray(saved) || saved.length === 0) return;
+
+    // Validation stricte
+    history = saved.filter(m =>
+      typeof m.role    === "string" &&
+      typeof m.content === "string" &&
+      (m.role === "user" || m.role === "assistant")
+    );
+    if (history.length === 0) return;
+
+    // Supprimer l'écran de bienvenue
+    const welcome = document.getElementById("welcome");
+    if (welcome) welcome.remove();
+
+    // Reconstruire les bulles
+    history.forEach(msg => appendMessage(msg.role, msg.content));
+    updateCount();
+    scrollBottom();
+  } catch { /* JSON malformé */ }
+}
+
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const messagesEl    = document.getElementById("messages");
 const inputEl       = document.getElementById("msg-input");
@@ -487,7 +521,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  modelSelect.addEventListener("change", () => {/* currentModel is read on-demand */});
+  modelSelect.addEventListener("change", () => {
+    try { localStorage.setItem(MODEL_KEY, modelSelect.value); } catch {}
+  });
+
+  // Restaurer le modèle sélectionné
+  const savedModel = localStorage.getItem(MODEL_KEY);
+  if (savedModel) modelSelect.value = savedModel;
+
+  // Restaurer l'historique
+  restoreHistory();
 
   inputEl.focus();
 });
@@ -557,6 +600,7 @@ async function handleSubmit(e) {
   // Add user bubble
   appendMessage("user", text);
   history.push({ role: "user", content: text });
+  saveHistory();
   updateCount();
 
   // Clear input
@@ -606,7 +650,11 @@ async function handleSubmit(e) {
         try { parsed = JSON.parse(raw); } catch { continue; }
 
         if (parsed.error) {
-          contentEl.textContent = "⚠️ " + parsed.error;
+          const errText = "⚠️ " + parsed.error;
+          contentEl.textContent = errText;
+          history.push({ role: "assistant", content: errText });
+          saveHistory();
+          updateCount();
           showToast(parsed.error);
           break outer;
         }
@@ -620,6 +668,7 @@ async function handleSubmit(e) {
 
         if (parsed.done) {
           history.push({ role: "assistant", content: fullText });
+          saveHistory();
           updateCount();
           updateTime(msgEl);
         }
@@ -628,7 +677,11 @@ async function handleSubmit(e) {
 
   } catch (err) {
     removeTyping(typingId);
-    appendMessage("assistant", "⚠️ Impossible de contacter le serveur.\n" + err.message);
+    const errText = "⚠️ Impossible de contacter le serveur.\n" + err.message;
+    appendMessage("assistant", errText);
+    history.push({ role: "assistant", content: errText });
+    saveHistory();
+    updateCount();
     showToast(err.message);
   } finally {
     streaming        = false;
@@ -647,6 +700,7 @@ function useSuggestion(el) {
 function clearConversation() {
   if (streaming) return;
   history = [];
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   messagesEl.innerHTML = "";
 
   const welcome = document.createElement("div");
