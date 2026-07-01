@@ -1,16 +1,42 @@
 @echo off
-echo ===============================
-echo Demarrage INFRA Ollama
-echo ===============================
+setlocal
+title TechCorp - Serveur Ollama
 
-echo Verification du modele phi3.5...
-ollama pull phi3.5
+echo.
+echo  ==================================================
+echo   TechCorp Industries - Serveur Ollama
+echo  ==================================================
+echo.
 
-echo Creation du modele techcorp-finance...
-ollama create techcorp-finance -f ollama_server\Modelfile
+REM Verifier si ollama est dans le PATH
+where ollama >nul 2>&1
+if %errorlevel% equ 0 goto :create_model
 
-echo API disponible sur :
-echo http://localhost:11434/api/generate
+REM Sinon tenter le chemin par defaut
+if exist "%LOCALAPPDATA%\Programs\Ollama\ollama.exe" goto :add_path
 
-echo Lancement du modele...
-ollama run techcorp-finance
+echo  [ERREUR] Ollama n est pas installe.
+echo  Lancez d abord : scripts\install_ollama.bat
+echo.
+pause
+exit /b 1
+
+:add_path
+set "PATH=%PATH%;%LOCALAPPDATA%\Programs\Ollama"
+
+:create_model
+cd /d "%~dp0\.."
+
+echo  Mise a jour du modele phi3_financial...
+ollama create phi3_financial -f ollama_server\Modelfile
+
+echo.
+echo  --------------------------------------------------
+echo  Serveur API : http://localhost:11434
+echo  Modele      : phi3_financial
+echo  Ctrl+C pour arreter
+echo  --------------------------------------------------
+echo.
+
+ollama serve
+endlocal
