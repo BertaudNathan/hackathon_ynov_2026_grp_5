@@ -83,8 +83,4 @@ médical attendu, et la loss baisse de façon cohérente dans les deux runs.
 être utilisé comme source d'avis médical réel, et nécessite une validation par des
 professionnels de santé qualifiés avant tout usage au-delà du POC.
 
-## Pour aller plus loin (si le temps le permet)
 
-- Relancer sur les 5000 exemples complets et/ou plusieurs epochs (~1h35 estimé pour 1 epoch
-  complet sur les 5000 exemples, extrapolé du run local).
-- Investiguer l'écart d'échelle de loss entre run local et Colab (versions de librairies).
