@@ -3,3 +3,4 @@ datasets/cleaned/medical_dataset_full.json
 medical_project/checkpoints/
 medical_project/phi35_medical_lora_colab.zip
 .DS_Store
+rendu/data_ia.zip
